@@ -1,0 +1,437 @@
+{
+  "version": 2,
+  "id": "doc-contoh-rs",
+  "meta": {
+    "name": "RS Contoh Sehat Sentosa",
+    "organization": "Demo ID-Grow",
+    "address": "Jl. Kesehatan No. 1, Contoh Kota",
+    "description": "Data contoh untuk mode demo. Dua lantai terhubung lift dan tangga darurat. Tidak terhubung ke prima maupun worklist."
+  },
+  "buildings": [
+    {
+      "id": "bd-utama",
+      "name": "Gedung Utama",
+      "code": "GU",
+      "floors": [
+        {
+          "id": "fl-gu-1",
+          "buildingId": "bd-utama",
+          "name": "Lantai 1",
+          "code": "GU-L1",
+          "level": 1,
+          "pixelsPerMeter": 20,
+          "size": { "width": 1600, "height": 1100 },
+          "background": null,
+          "walls": [
+            {
+              "id": "wl-f1-outer",
+              "kind": "luar",
+              "thickness": 14,
+              "points": [
+                { "x": 120, "y": 120 },
+                { "x": 1480, "y": 120 },
+                { "x": 1480, "y": 1000 },
+                { "x": 120, "y": 1000 },
+                { "x": 120, "y": 120 }
+              ]
+            }
+          ],
+          "rooms": [
+            {
+              "id": "rm-f1-poliu",
+              "name": "Poliklinik Umum",
+              "code": "PK-01",
+              "category": "poliklinik",
+              "note": "",
+              "polygon": [
+                { "x": 130, "y": 130 },
+                { "x": 540, "y": 130 },
+                { "x": 540, "y": 490 },
+                { "x": 130, "y": 490 }
+              ]
+            },
+            {
+              "id": "rm-f1-polianak",
+              "name": "Poliklinik Anak",
+              "code": "PK-02",
+              "category": "poliklinik",
+              "note": "",
+              "polygon": [
+                { "x": 570, "y": 130 },
+                { "x": 1040, "y": 130 },
+                { "x": 1040, "y": 490 },
+                { "x": 570, "y": 490 }
+              ]
+            },
+            {
+              "id": "rm-f1-rad",
+              "name": "Radiologi",
+              "code": "PN-01",
+              "category": "penunjang",
+              "note": "",
+              "polygon": [
+                { "x": 1070, "y": 130 },
+                { "x": 1470, "y": 130 },
+                { "x": 1470, "y": 490 },
+                { "x": 1070, "y": 490 }
+              ]
+            },
+            {
+              "id": "rm-f1-igd",
+              "name": "IGD",
+              "code": "IGD-01",
+              "category": "igd",
+              "note": "Buka 24 jam",
+              "polygon": [
+                { "x": 130, "y": 630 },
+                { "x": 540, "y": 630 },
+                { "x": 540, "y": 990 },
+                { "x": 130, "y": 990 }
+              ]
+            },
+            {
+              "id": "rm-f1-lobby",
+              "name": "Lobby & Pendaftaran",
+              "code": "ADM-01",
+              "category": "administrasi",
+              "note": "",
+              "polygon": [
+                { "x": 570, "y": 630 },
+                { "x": 1040, "y": 630 },
+                { "x": 1040, "y": 990 },
+                { "x": 570, "y": 990 }
+              ]
+            },
+            {
+              "id": "rm-f1-farmasi",
+              "name": "Farmasi",
+              "code": "FR-01",
+              "category": "farmasi",
+              "note": "",
+              "polygon": [
+                { "x": 1070, "y": 630 },
+                { "x": 1470, "y": 630 },
+                { "x": 1470, "y": 990 },
+                { "x": 1070, "y": 990 }
+              ]
+            }
+          ],
+          "doors": [
+            { "id": "dr-f1-poliu", "position": { "x": 335, "y": 500 }, "width": 60, "rotation": 0 },
+            { "id": "dr-f1-polianak", "position": { "x": 805, "y": 500 }, "width": 60, "rotation": 0 },
+            { "id": "dr-f1-rad", "position": { "x": 1270, "y": 500 }, "width": 60, "rotation": 0 },
+            { "id": "dr-f1-igd", "position": { "x": 335, "y": 620 }, "width": 60, "rotation": 0 },
+            { "id": "dr-f1-lobby", "position": { "x": 805, "y": 630 }, "width": 60, "rotation": 0 },
+            { "id": "dr-f1-farmasi", "position": { "x": 1270, "y": 620 }, "width": 60, "rotation": 0 }
+          ],
+          "nodes": [
+            { "id": "nd-f1-entrance", "type": "entrance", "label": "Pintu Masuk Utama", "position": { "x": 805, "y": 975 } },
+            { "id": "nd-f1-d-lobby", "type": "door", "label": "Pintu Lobby", "position": { "x": 805, "y": 630 } },
+            { "id": "nd-f1-c1", "type": "junction", "label": "Koridor Barat", "position": { "x": 335, "y": 560 } },
+            { "id": "nd-f1-c2", "type": "junction", "label": "Koridor Tengah", "position": { "x": 600, "y": 560 } },
+            { "id": "nd-f1-c3", "type": "junction", "label": "Koridor Lobby", "position": { "x": 805, "y": 560 } },
+            { "id": "nd-f1-c4", "type": "junction", "label": "Koridor Timur", "position": { "x": 1050, "y": 560 } },
+            { "id": "nd-f1-c5", "type": "junction", "label": "Koridor Radiologi", "position": { "x": 1420, "y": 560 } },
+            { "id": "nd-f1-lift", "type": "lift", "label": "Lift Utama", "position": { "x": 1180, "y": 560 } },
+            { "id": "nd-f1-stair", "type": "stair", "label": "Tangga Darurat", "position": { "x": 1300, "y": 560 } },
+            { "id": "nd-f1-d-poliu", "type": "door", "label": "Pintu Poliklinik Umum", "position": { "x": 335, "y": 500 } },
+            { "id": "nd-f1-d-polianak", "type": "door", "label": "Pintu Poliklinik Anak", "position": { "x": 805, "y": 500 } },
+            { "id": "nd-f1-d-rad", "type": "door", "label": "Pintu Radiologi", "position": { "x": 1270, "y": 500 } },
+            { "id": "nd-f1-d-igd", "type": "door", "label": "Pintu IGD", "position": { "x": 335, "y": 620 } },
+            { "id": "nd-f1-d-farmasi", "type": "door", "label": "Pintu Farmasi", "position": { "x": 1270, "y": 620 } }
+          ],
+          "edges": [
+            { "id": "eg-f1-01", "from": "nd-f1-entrance", "to": "nd-f1-d-lobby" },
+            { "id": "eg-f1-02", "from": "nd-f1-d-lobby", "to": "nd-f1-c3" },
+            { "id": "eg-f1-03", "from": "nd-f1-c1", "to": "nd-f1-c2" },
+            { "id": "eg-f1-04", "from": "nd-f1-c2", "to": "nd-f1-c3" },
+            { "id": "eg-f1-05", "from": "nd-f1-c3", "to": "nd-f1-c4" },
+            { "id": "eg-f1-06", "from": "nd-f1-c4", "to": "nd-f1-lift" },
+            { "id": "eg-f1-07", "from": "nd-f1-lift", "to": "nd-f1-stair" },
+            { "id": "eg-f1-08", "from": "nd-f1-stair", "to": "nd-f1-c5" },
+            { "id": "eg-f1-09", "from": "nd-f1-d-igd", "to": "nd-f1-c1" },
+            { "id": "eg-f1-10", "from": "nd-f1-d-poliu", "to": "nd-f1-c1" },
+            { "id": "eg-f1-11", "from": "nd-f1-d-polianak", "to": "nd-f1-c3" },
+            { "id": "eg-f1-12", "from": "nd-f1-d-rad", "to": "nd-f1-c5" },
+            { "id": "eg-f1-13", "from": "nd-f1-d-farmasi", "to": "nd-f1-c5" },
+            { "id": "eg-f1-14", "from": "pn-f1-lobby", "to": "nd-f1-d-lobby" },
+            { "id": "eg-f1-15", "from": "pn-f1-igd", "to": "nd-f1-d-igd" },
+            { "id": "eg-f1-16", "from": "pn-f1-farmasi", "to": "nd-f1-d-farmasi" },
+            { "id": "eg-f1-17", "from": "pn-f1-poliu", "to": "nd-f1-d-poliu" },
+            { "id": "eg-f1-18", "from": "pn-f1-polianak", "to": "nd-f1-d-polianak" },
+            { "id": "eg-f1-19", "from": "pn-f1-rad", "to": "nd-f1-d-rad" }
+          ],
+          "pins": [
+            {
+              "id": "pn-f1-lobby",
+              "label": "Lobby & Pendaftaran",
+              "category": "administrasi",
+              "note": "Pendaftaran pasien rawat jalan",
+              "position": { "x": 805, "y": 810 },
+              "nodeId": "nd-f1-d-lobby"
+            },
+            {
+              "id": "pn-f1-igd",
+              "label": "IGD",
+              "category": "igd",
+              "note": "Gawat darurat 24 jam",
+              "position": { "x": 335, "y": 810 },
+              "nodeId": "nd-f1-d-igd"
+            },
+            {
+              "id": "pn-f1-farmasi",
+              "label": "Farmasi",
+              "category": "farmasi",
+              "note": "Pengambilan obat",
+              "position": { "x": 1270, "y": 810 },
+              "nodeId": "nd-f1-d-farmasi"
+            },
+            {
+              "id": "pn-f1-poliu",
+              "label": "Poliklinik Umum",
+              "category": "poliklinik",
+              "note": "",
+              "position": { "x": 335, "y": 310 },
+              "nodeId": "nd-f1-d-poliu"
+            },
+            {
+              "id": "pn-f1-polianak",
+              "label": "Poliklinik Anak",
+              "category": "poliklinik",
+              "note": "",
+              "position": { "x": 805, "y": 310 },
+              "nodeId": "nd-f1-d-polianak"
+            },
+            {
+              "id": "pn-f1-rad",
+              "label": "Radiologi",
+              "category": "penunjang",
+              "note": "Rontgen & USG",
+              "position": { "x": 1270, "y": 310 },
+              "nodeId": "nd-f1-d-rad"
+            }
+          ]
+        },
+        {
+          "id": "fl-gu-2",
+          "buildingId": "bd-utama",
+          "name": "Lantai 2",
+          "code": "GU-L2",
+          "level": 2,
+          "pixelsPerMeter": 20,
+          "size": { "width": 1600, "height": 1100 },
+          "background": null,
+          "walls": [
+            {
+              "id": "wl-f2-outer",
+              "kind": "luar",
+              "thickness": 14,
+              "points": [
+                { "x": 120, "y": 120 },
+                { "x": 1480, "y": 120 },
+                { "x": 1480, "y": 1000 },
+                { "x": 120, "y": 1000 },
+                { "x": 120, "y": 120 }
+              ]
+            }
+          ],
+          "rooms": [
+            {
+              "id": "rm-f2-lab",
+              "name": "Laboratorium",
+              "code": "PN-02",
+              "category": "penunjang",
+              "note": "",
+              "polygon": [
+                { "x": 130, "y": 130 },
+                { "x": 540, "y": 130 },
+                { "x": 540, "y": 490 },
+                { "x": 130, "y": 490 }
+              ]
+            },
+            {
+              "id": "rm-f2-tunggu",
+              "name": "Ruang Tunggu",
+              "code": "ADM-02",
+              "category": "administrasi",
+              "note": "",
+              "polygon": [
+                { "x": 570, "y": 130 },
+                { "x": 1040, "y": 130 },
+                { "x": 1040, "y": 490 },
+                { "x": 570, "y": 490 }
+              ]
+            },
+            {
+              "id": "rm-f2-isolasi",
+              "name": "Ruang Isolasi",
+              "code": "RI-03",
+              "category": "rawat-inap",
+              "note": "Akses terbatas",
+              "polygon": [
+                { "x": 1070, "y": 130 },
+                { "x": 1470, "y": 130 },
+                { "x": 1470, "y": 490 },
+                { "x": 1070, "y": 490 }
+              ]
+            },
+            {
+              "id": "rm-f2-melati",
+              "name": "Rawat Inap Melati",
+              "code": "RI-01",
+              "category": "rawat-inap",
+              "note": "",
+              "polygon": [
+                { "x": 130, "y": 630 },
+                { "x": 540, "y": 630 },
+                { "x": 540, "y": 990 },
+                { "x": 130, "y": 990 }
+              ]
+            },
+            {
+              "id": "rm-f2-anggrek",
+              "name": "Rawat Inap Anggrek",
+              "code": "RI-02",
+              "category": "rawat-inap",
+              "note": "",
+              "polygon": [
+                { "x": 570, "y": 630 },
+                { "x": 1040, "y": 630 },
+                { "x": 1040, "y": 990 },
+                { "x": 570, "y": 990 }
+              ]
+            },
+            {
+              "id": "rm-f2-tindakan",
+              "name": "Ruang Tindakan",
+              "code": "PN-03",
+              "category": "penunjang",
+              "note": "",
+              "polygon": [
+                { "x": 1070, "y": 630 },
+                { "x": 1470, "y": 630 },
+                { "x": 1470, "y": 990 },
+                { "x": 1070, "y": 990 }
+              ]
+            }
+          ],
+          "doors": [
+            { "id": "dr-f2-lab", "position": { "x": 335, "y": 500 }, "width": 60, "rotation": 0 },
+            { "id": "dr-f2-tunggu", "position": { "x": 805, "y": 500 }, "width": 60, "rotation": 0 },
+            { "id": "dr-f2-isolasi", "position": { "x": 1270, "y": 500 }, "width": 60, "rotation": 0 },
+            { "id": "dr-f2-melati", "position": { "x": 335, "y": 620 }, "width": 60, "rotation": 0 },
+            { "id": "dr-f2-anggrek", "position": { "x": 805, "y": 620 }, "width": 60, "rotation": 0 },
+            { "id": "dr-f2-tindakan", "position": { "x": 1270, "y": 620 }, "width": 60, "rotation": 0 }
+          ],
+          "nodes": [
+            { "id": "nd-f2-c1", "type": "junction", "label": "Koridor Barat L2", "position": { "x": 335, "y": 560 } },
+            { "id": "nd-f2-c2", "type": "junction", "label": "Koridor Tengah L2", "position": { "x": 600, "y": 560 } },
+            { "id": "nd-f2-c3", "type": "junction", "label": "Koridor Lobby L2", "position": { "x": 805, "y": 560 } },
+            { "id": "nd-f2-c4", "type": "junction", "label": "Koridor Timur L2", "position": { "x": 1050, "y": 560 } },
+            { "id": "nd-f2-c5", "type": "junction", "label": "Koridor Isolasi L2", "position": { "x": 1420, "y": 560 } },
+            { "id": "nd-f2-lift", "type": "lift", "label": "Lift Utama L2", "position": { "x": 1180, "y": 560 } },
+            { "id": "nd-f2-stair", "type": "stair", "label": "Tangga Darurat L2", "position": { "x": 1300, "y": 560 } },
+            { "id": "nd-f2-d-lab", "type": "door", "label": "Pintu Laboratorium", "position": { "x": 335, "y": 500 } },
+            { "id": "nd-f2-d-tunggu", "type": "door", "label": "Pintu Ruang Tunggu", "position": { "x": 805, "y": 500 } },
+            { "id": "nd-f2-d-isolasi", "type": "door", "label": "Pintu Ruang Isolasi", "position": { "x": 1270, "y": 500 } },
+            { "id": "nd-f2-d-melati", "type": "door", "label": "Pintu Rawat Inap Melati", "position": { "x": 335, "y": 620 } },
+            { "id": "nd-f2-d-anggrek", "type": "door", "label": "Pintu Rawat Inap Anggrek", "position": { "x": 805, "y": 620 } },
+            { "id": "nd-f2-d-tindakan", "type": "door", "label": "Pintu Ruang Tindakan", "position": { "x": 1270, "y": 620 } }
+          ],
+          "edges": [
+            { "id": "eg-f2-01", "from": "nd-f2-c1", "to": "nd-f2-c2" },
+            { "id": "eg-f2-02", "from": "nd-f2-c2", "to": "nd-f2-c3" },
+            { "id": "eg-f2-03", "from": "nd-f2-c3", "to": "nd-f2-c4" },
+            { "id": "eg-f2-04", "from": "nd-f2-c4", "to": "nd-f2-lift" },
+            { "id": "eg-f2-05", "from": "nd-f2-lift", "to": "nd-f2-stair" },
+            { "id": "eg-f2-06", "from": "nd-f2-stair", "to": "nd-f2-c5" },
+            { "id": "eg-f2-07", "from": "nd-f2-d-lab", "to": "nd-f2-c1" },
+            { "id": "eg-f2-08", "from": "nd-f2-d-melati", "to": "nd-f2-c1" },
+            { "id": "eg-f2-09", "from": "nd-f2-d-tunggu", "to": "nd-f2-c3" },
+            { "id": "eg-f2-10", "from": "nd-f2-d-anggrek", "to": "nd-f2-c3" },
+            { "id": "eg-f2-11", "from": "nd-f2-d-isolasi", "to": "nd-f2-c5" },
+            { "id": "eg-f2-12", "from": "nd-f2-d-tindakan", "to": "nd-f2-c5" },
+            { "id": "eg-f2-13", "from": "pn-f2-lab", "to": "nd-f2-d-lab" },
+            { "id": "eg-f2-14", "from": "pn-f2-tunggu", "to": "nd-f2-d-tunggu" },
+            { "id": "eg-f2-15", "from": "pn-f2-isolasi", "to": "nd-f2-d-isolasi" },
+            { "id": "eg-f2-16", "from": "pn-f2-melati", "to": "nd-f2-d-melati" },
+            { "id": "eg-f2-17", "from": "pn-f2-anggrek", "to": "nd-f2-d-anggrek" },
+            { "id": "eg-f2-18", "from": "pn-f2-tindakan", "to": "nd-f2-d-tindakan" }
+          ],
+          "pins": [
+            {
+              "id": "pn-f2-lab",
+              "label": "Laboratorium",
+              "category": "penunjang",
+              "note": "Pengambilan sampel darah",
+              "position": { "x": 335, "y": 310 },
+              "nodeId": "nd-f2-d-lab"
+            },
+            {
+              "id": "pn-f2-tunggu",
+              "label": "Ruang Tunggu",
+              "category": "administrasi",
+              "note": "",
+              "position": { "x": 805, "y": 310 },
+              "nodeId": "nd-f2-d-tunggu"
+            },
+            {
+              "id": "pn-f2-isolasi",
+              "label": "Ruang Isolasi",
+              "category": "rawat-inap",
+              "note": "",
+              "position": { "x": 1270, "y": 310 },
+              "nodeId": "nd-f2-d-isolasi"
+            },
+            {
+              "id": "pn-f2-melati",
+              "label": "Rawat Inap Melati",
+              "category": "rawat-inap",
+              "note": "",
+              "position": { "x": 335, "y": 810 },
+              "nodeId": "nd-f2-d-melati"
+            },
+            {
+              "id": "pn-f2-anggrek",
+              "label": "Rawat Inap Anggrek",
+              "category": "rawat-inap",
+              "note": "",
+              "position": { "x": 805, "y": 810 },
+              "nodeId": "nd-f2-d-anggrek"
+            },
+            {
+              "id": "pn-f2-tindakan",
+              "label": "Ruang Tindakan",
+              "category": "penunjang",
+              "note": "",
+              "position": { "x": 1270, "y": 810 },
+              "nodeId": "nd-f2-d-tindakan"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "links": [
+    {
+      "id": "lk-lift-utama",
+      "kind": "lift",
+      "label": "Lift Utama",
+      "fromFloorId": "fl-gu-1",
+      "fromNodeId": "nd-f1-lift",
+      "toFloorId": "fl-gu-2",
+      "toNodeId": "nd-f2-lift"
+    },
+    {
+      "id": "lk-tangga-darurat",
+      "kind": "stair",
+      "label": "Tangga Darurat",
+      "fromFloorId": "fl-gu-1",
+      "fromNodeId": "nd-f1-stair",
+      "toFloorId": "fl-gu-2",
+      "toNodeId": "nd-f2-stair"
+    }
+  ],
+  "createdAt": "2026-01-05T08:00:00.000Z",
+  "updatedAt": "2026-01-05T08:00:00.000Z"
+}
