@@ -1,0 +1,24 @@
+{
+  "name": "id-grow-editormap",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Indoor Floorplan, Rack Mapping & Hospital/Warehouse Wayfinding Editor for ID-Grow Worklist",
+  "scripts": {
+    "dev": "vite --port 5178",
+    "build": "vite build",
+    "preview": "vite preview --port 4178"
+  },
+  "dependencies": {
+    "konva": "^10.9.1",
+    "lucide-vue-next": "^0.577.0",
+    "vue": "^3.5.30",
+    "vue-konva": "^4.0.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.2.1",
+    "@vitejs/plugin-vue": "^6.0.5",
+    "tailwindcss": "^4.2.1",
+    "vite": "^8.0.0"
+  }
+}
