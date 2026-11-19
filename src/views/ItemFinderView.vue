@@ -140,29 +140,39 @@ const switchRoutingProfile = (mode) => {
 
     <section class="absolute top-3 left-3 bottom-12 w-[360px] max-w-[calc(100vw-1.5rem)] z-20 pointer-events-none flex flex-col gap-2.5">
       <div class="bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-slate-200/90 p-3.5 space-y-2.5 pointer-events-auto">
-        <SearchableCombobox
-          :model-value="currentAnchorValue"
-          :options="anchorOptions"
-          :filter-tabs="anchorFilterTabs"
-          prefix-label="Dari:"
-          placeholder="Pilih lokasi Anda saat ini..."
-          search-placeholder="Cari ruangan, lantai, atau lift..."
-          dot-indicator-color="bg-sky-600 ring-sky-100"
-          popover-width-class="w-full min-w-[330px]"
-          @change="handleAnchorSelect"
-        />
+        <!-- Google Maps Origin -> Destination Connector -->
+        <div class="flex items-stretch gap-2.5">
+          <div class="flex flex-col items-center justify-between py-2.5 shrink-0">
+            <span class="w-3 h-3 rounded-full bg-[#1a73e8] ring-4 ring-blue-100" />
+            <span class="flex-1 w-px border-l-2 border-dotted border-slate-300 my-1" />
+            <MapPin class="w-4 h-4 text-[#ea4335] shrink-0" />
+          </div>
 
-        <div class="relative">
-          <Search class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
-          <input
-            v-model="store.itemSearchQuery.value"
-            type="text"
-            placeholder="Cari ruangan, nama barang, kode, atau batch..."
-            class="w-full pl-9 pr-8 py-2 text-xs bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500"
-          />
-          <button v-if="store.itemSearchQuery.value" type="button" @click="store.itemSearchQuery.value = ''" class="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600 cursor-pointer">
-            <X class="w-3.5 h-3.5" />
-          </button>
+          <div class="flex-1 min-w-0 space-y-2">
+            <SearchableCombobox
+              :model-value="currentAnchorValue"
+              :options="anchorOptions"
+              :filter-tabs="anchorFilterTabs"
+              prefix-label="Dari:"
+              placeholder="Pilih lokasi awal..."
+              search-placeholder="Cari ruangan, lantai, atau lift..."
+              popover-width-class="w-full min-w-[330px]"
+              @change="handleAnchorSelect"
+            />
+
+            <div class="relative">
+              <Search class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+              <input
+                v-model="store.itemSearchQuery.value"
+                type="text"
+                placeholder="Tujuan: Cari ruangan, barang, atau kode..."
+                class="w-full pl-9 pr-8 py-2 text-xs bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1a73e8]/25 focus:border-[#1a73e8]"
+              />
+              <button v-if="store.itemSearchQuery.value" type="button" @click="store.itemSearchQuery.value = ''" class="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600 cursor-pointer">
+                <X class="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
         </div>
 
         <div class="flex items-center justify-between gap-2">
@@ -173,7 +183,7 @@ const switchRoutingProfile = (mode) => {
               type="button"
               @click="store.itemSearchQuery.value = q"
               class="px-2 py-0.5 rounded-full text-[10px] font-semibold border cursor-pointer transition-colors"
-              :class="store.itemSearchQuery.value === q ? 'bg-sky-600 text-white border-sky-600' : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'"
+              :class="store.itemSearchQuery.value === q ? 'bg-[#1a73e8] text-white border-[#1a73e8]' : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'"
             >
               {{ q }}
             </button>
@@ -207,7 +217,7 @@ const switchRoutingProfile = (mode) => {
             type="button"
             @click="switchRoutingProfile('umum')"
             class="py-1.5 rounded-lg text-[11px] font-bold cursor-pointer transition-all"
-            :class="store.routingProfile.value !== 'steril' ? 'bg-sky-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'"
+            :class="store.routingProfile.value !== 'steril' ? 'bg-[#1a73e8] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'"
           >
             Jalur Rute Umum
           </button>

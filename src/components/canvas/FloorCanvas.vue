@@ -1,19 +1,20 @@
 <script setup>
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import {
-  Eye,
-  EyeOff,
-  GitBranch,
-  Image as ImageIcon,
-  Maximize2,
+  Check,
+  LocateFixed,
+  Minus,
   Play,
-  Square as StopIcon,
-  ZoomIn,
-  ZoomOut
+  Plus,
+  Square as StopIcon
 } from 'lucide-vue-next'
+import { computeDragSnapAndGuides } from '../../composables/useSnapGuides'
+import { ROUTE_TYPES } from '../../data/hospitalDemoData'
 import CanvasGridLayer from './CanvasGridLayer.vue'
 import CanvasRoomRackLayer from './CanvasRoomRackLayer.vue'
 import CanvasRouteLayer from './CanvasRouteLayer.vue'
+import CanvasSnapGuidesLayer from './CanvasSnapGuidesLayer.vue'
+import MapLayersWidget from './MapLayersWidget.vue'
 
 const props = defineProps({
   store: { type: Object, required: true },
@@ -30,8 +31,28 @@ const pan = ref({ x: 36, y: 28 })
 const isPanning = ref(false)
 const panStart = ref({ x: 0, y: 0 })
 const draftRoom = ref(null)
+const routeDraftCursor = ref(null)
+const showCanvasGrid = ref(true)
+const activeGuides = ref([])
+const snapHud = ref(null)
 
 const floor = computed(() => props.store.activeFloor.value)
+const buildingFloorsDesc = computed(() => {
+  const floors = props.store.activeBuilding.value?.floors || []
+  return [...floors].sort((a, b) => (b.level_order || 0) - (a.level_order || 0))
+})
+const handleLayerModeSelect = (modeId) => {
+  if (props.readOnly) {
+    props.store.routingProfile.value = modeId === 'steril' ? 'steril' : 'umum'
+  } else {
+    props.store.activeRouteDrawType.value = modeId
+    props.store.activeTool.value = 'edge'
+  }
+}
+
+const activeRouteDrawMeta = computed(
+  () => ROUTE_TYPES[props.store.activeRouteDrawType.value] || ROUTE_TYPES.bersama
+)
 const floorWidth = computed(() => floor.value?.width || 1000)
 const floorHeight = computed(() => floor.value?.height || 620)
 const isHandMode = computed(
@@ -83,6 +104,9 @@ onUnmounted(() => {
 })
 
 watch(() => props.store.activeFloorId.value, () => requestAnimationFrame(fitToViewport))
+watch(() => props.store.activeTool.value, () => {
+  routeDraftCursor.value = null
+})
 
 const getWorldPoint = () => {
   const stage = stageRef.value?.getNode?.()
@@ -118,7 +142,10 @@ const onStageMouseDown = (e) => {
   const pt = getWorldPoint()
   const tool = props.store.activeTool.value
   if (tool === 'select') props.store.selection.value = null
-  else if (tool === 'room') {
+  else if (tool === 'edge') {
+    props.store.drawRoutePointAt(pt.x, pt.y)
+    routeDraftCursor.value = { x: props.store.snap(pt.x), y: props.store.snap(pt.y) }
+  } else if (tool === 'room') {
     const sx = props.store.snap(pt.x)
     const sy = props.store.snap(pt.y)
     draftRoom.value = { startX: sx, startY: sy, curX: sx, curY: sy }
@@ -137,6 +164,31 @@ const onStageMouseMove = (e) => {
     const pt = getWorldPoint()
     draftRoom.value.curX = props.store.snap(pt.x)
     draftRoom.value.curY = props.store.snap(pt.y)
+    return
+  }
+  if (!props.readOnly && props.store.activeTool.value === 'edge' && props.store.edgeDraftFromNodeId.value && floor.value) {
+    const pt = getWorldPoint()
+    let snapNode = null
+    let bestD = 18
+    for (const n of floor.value.nav_nodes || []) {
+      const d = Math.hypot(n.x - pt.x, n.y - pt.y)
+      if (d <= bestD) {
+        bestD = d
+        snapNode = n
+      }
+    }
+    routeDraftCursor.value = snapNode
+      ? { x: snapNode.x, y: snapNode.y }
+      : { x: props.store.snap(pt.x), y: props.store.snap(pt.y) }
+  } else if (routeDraftCursor.value) {
+    routeDraftCursor.value = null
+  }
+}
+
+const onStageDblClick = () => {
+  if (!props.readOnly && props.store.activeTool.value === 'edge' && props.store.edgeDraftFromNodeId.value) {
+    props.store.finishRouteDraft()
+    routeDraftCursor.value = null
   }
 }
 
@@ -166,13 +218,14 @@ const onEntityMouseDown = (e, type, entity) => {
   }
 
   const tool = props.store.activeTool.value
-  if (tool === 'edge' && type === 'node') {
-    if (!props.store.edgeDraftFromNodeId.value) {
-      props.store.edgeDraftFromNodeId.value = entity.id
-      props.store.selection.value = { type: 'node', id: entity.id }
+  if (tool === 'edge') {
+    if (type === 'node') {
+      props.store.drawRoutePointAt(entity.x, entity.y, entity.id)
+      routeDraftCursor.value = { x: entity.x, y: entity.y }
     } else {
-      props.store.connectNodes(props.store.edgeDraftFromNodeId.value, entity.id)
-      props.store.edgeDraftFromNodeId.value = null
+      const pt = getWorldPoint()
+      props.store.drawRoutePointAt(pt.x, pt.y)
+      routeDraftCursor.value = { x: props.store.snap(pt.x), y: props.store.snap(pt.y) }
     }
     return
   }
@@ -197,19 +250,54 @@ const onEntityMouseDown = (e, type, entity) => {
   props.store.selection.value = { type, id: entity.id }
 }
 
-const onDragEndEntity = (e, type, entity) => {
+const onDragMoveEntity = (e, type, entity) => {
+  if (!floor.value) return
   const node = e.target
-  const oldX = entity.x
-  const oldY = entity.y
-  const nx = props.store.snap(node.x())
-  const ny = props.store.snap(node.y())
+  const { nx, ny, guides, snapHud: hud } = computeDragSnapAndGuides(
+    node.x(),
+    node.y(),
+    type,
+    entity,
+    floor.value,
+    props.store
+  )
+  node.position({ x: nx, y: ny })
+  activeGuides.value = guides
+  snapHud.value = hud
+
+  const prevX = entity.x
+  const prevY = entity.y
+  if (nx !== prevX || ny !== prevY) {
+    entity.x = nx
+    entity.y = ny
+    if (type === 'room') {
+      props.store.syncRoomMoved(entity, prevX, prevY)
+    }
+  }
+}
+
+const onDragEndEntity = (e, type, entity) => {
+  activeGuides.value = []
+  snapHud.value = null
+  if (!floor.value) return
+  const node = e.target
+  const prevX = entity.x
+  const prevY = entity.y
+  const { nx, ny } = computeDragSnapAndGuides(
+    node.x(),
+    node.y(),
+    type,
+    entity,
+    floor.value,
+    props.store
+  )
   node.position({ x: nx, y: ny })
   entity.x = nx
   entity.y = ny
 
-  if (type === 'room') {
-    props.store.syncRoomMoved(entity, oldX, oldY)
-  } else if (type === 'rack' && floor.value) {
+  if (type === 'room' && (nx !== prevX || ny !== prevY)) {
+    props.store.syncRoomMoved(entity, prevX, prevY)
+  } else if (type === 'rack') {
     const room = props.store.findContainingRoom(floor.value, nx + entity.w / 2, ny + entity.h / 2)
     if (room) entity.ruangan_id = room.masterRoomId || room.id
   }
@@ -283,7 +371,16 @@ const cursorClass = computed(() => {
 </script>
 
 <template>
-  <div class="flex-1 relative bg-[#e5e8ee] overflow-hidden select-none flex flex-col">
+  <div
+    class="flex-1 relative overflow-hidden select-none flex flex-col"
+    style="
+      background-color: #eaedf2;
+      background-image:
+        radial-gradient(circle at 50% 45%, rgba(255, 255, 255, 0.55) 0%, rgba(226, 232, 240, 0.35) 100%),
+        radial-gradient(#cbd5e1 1.1px, transparent 1.1px);
+      background-size: 100% 100%, 20px 20px;
+    "
+  >
     <!-- Multi-floor Route Pill Bar -->
     <div v-if="routeFloorsSummary.length > 0 && readOnly" class="absolute top-3 left-1/2 -translate-x-1/2 z-10 pointer-events-auto">
       <div class="bg-white/95 backdrop-blur-md border border-slate-200/90 rounded-full px-3 py-1.5 shadow-lg flex items-center gap-1.5">
@@ -318,6 +415,35 @@ const cursorClass = computed(() => {
       </div>
     </div>
 
+    <!-- Google Maps Polyline Route Draw Helper Banner (Active Only During Route Drawing) -->
+    <div
+      v-if="!readOnly && store.activeTool.value === 'edge'"
+      class="absolute top-3 left-1/2 -translate-x-1/2 z-10 pointer-events-auto"
+    >
+      <div class="bg-white/95 backdrop-blur-md border border-slate-200/90 rounded-full px-3.5 py-1.5 shadow-lg flex items-center gap-2 text-[11px]">
+        <span
+          class="w-2.5 h-2.5 rounded-full shrink-0"
+          :style="{ backgroundColor: activeRouteDrawMeta.color }"
+        />
+        <span class="font-bold text-slate-800 whitespace-nowrap">{{ activeRouteDrawMeta.label }}</span>
+        <span class="text-slate-500 truncate max-w-[260px] sm:max-w-none">
+          {{
+            store.edgeDraftFromNodeId.value
+              ? 'Klik titik berikutnya · Double-click / Esc selesai'
+              : 'Klik koridor, pintu, atau ruangan untuk mulai'
+          }}
+        </span>
+        <button
+          v-if="store.edgeDraftFromNodeId.value"
+          type="button"
+          @click="store.finishRouteDraft(); routeDraftCursor = null"
+          class="px-2.5 py-0.5 rounded-full bg-[#1a73e8] hover:bg-blue-700 text-white font-semibold flex items-center gap-1 cursor-pointer shrink-0"
+        >
+          <Check class="w-3 h-3" /> Selesai
+        </button>
+      </div>
+    </div>
+
     <!-- Konva Stage -->
     <div
       ref="containerRef"
@@ -325,6 +451,8 @@ const cursorClass = computed(() => {
       :class="cursorClass"
       @dragover.prevent
       @drop.prevent="onCanvasDrop"
+      @dblclick="onStageDblClick"
+      @contextmenu.prevent="onStageDblClick"
     >
       <v-stage
         ref="stageRef"
@@ -334,7 +462,14 @@ const cursorClass = computed(() => {
         @mousemove="onStageMouseMove"
         @mouseup="onStageMouseUp"
       >
-        <CanvasGridLayer v-if="floor" :floor="floor" :show-blueprint="store.showBlueprint.value" />
+        <CanvasGridLayer
+          v-if="floor"
+          :floor="floor"
+          :show-blueprint="store.showBlueprint.value"
+          :show-grid="showCanvasGrid"
+          :grid-size="store.gridSize.value"
+          :read-only="readOnly"
+        />
         <CanvasRoomRackLayer
           v-if="floor"
           :floor="floor"
@@ -346,6 +481,7 @@ const cursorClass = computed(() => {
           :draft-room-box="draftRoomBox"
           @entity-mousedown="onEntityMouseDown"
           @drag-start="store.pushSnapshot()"
+          @drag-move="onDragMoveEntity"
           @drag-end="onDragEndEntity"
           @transform-end="onTransformEndEntity"
           @open-rack-modal="store.rackModalTargetId.value = $event"
@@ -356,6 +492,8 @@ const cursorClass = computed(() => {
           :show-graph="store.showCorridorGraph.value"
           :selection="store.selection.value"
           :edge-draft-from-node-id="store.edgeDraftFromNodeId.value"
+          :active-route-draw-type="store.activeRouteDrawType.value"
+          :route-draft-cursor="routeDraftCursor"
           :active-route="store.activeRoute.value"
           :routing-profile="store.routingProfile.value"
           :sim-progress="store.simProgress.value"
@@ -364,48 +502,86 @@ const cursorClass = computed(() => {
           :can-drag="canDrag"
           @entity-mousedown="onEntityMouseDown"
           @drag-start="store.pushSnapshot()"
+          @drag-move="onDragMoveEntity"
           @drag-end="onDragEndEntity"
+        />
+        <CanvasSnapGuidesLayer
+          v-if="floor && !readOnly"
+          :guides="activeGuides"
+          :snap-hud="snapHud"
         />
       </v-stage>
     </div>
 
-    <!-- Floating Bottom Pill HUD -->
-    <div class="absolute bottom-3 left-1/2 -translate-x-1/2 z-10 pointer-events-auto">
-      <div class="bg-white/95 backdrop-blur-md border border-slate-200/90 rounded-full px-3.5 py-1 shadow-lg flex items-center gap-3 text-[11px] text-slate-600">
-        <div class="hidden xl:flex items-center gap-2.5 text-[10px] whitespace-nowrap">
-          <span class="flex items-center gap-1 whitespace-nowrap"><span class="w-2.5 h-2.5 rounded-full bg-sky-100 border border-sky-600 shrink-0" /> Medis</span>
-          <span class="flex items-center gap-1 whitespace-nowrap"><span class="w-2.5 h-2.5 rounded-full bg-slate-100 border border-slate-500 shrink-0" /> Non-Medis</span>
-          <span class="text-slate-300">|</span>
-          <span class="flex items-center gap-1 font-semibold text-sky-700 whitespace-nowrap"><span class="w-3 h-0.5 bg-sky-600 shrink-0" /> Umum</span>
-          <span class="flex items-center gap-1 font-semibold text-teal-700 whitespace-nowrap"><span class="w-3 h-0.5 bg-teal-600 shrink-0" /> Steril</span>
-          <span class="flex items-center gap-1 font-semibold text-indigo-700 whitespace-nowrap"><span class="w-3 h-0.5 bg-indigo-500 shrink-0" /> Bersama</span>
+    <!-- Bottom-Right Google Maps Controls (Indoor Floor Switcher + Recenter + Stacked Zoom) -->
+    <div class="absolute bottom-4 right-4 z-10 flex flex-col items-end gap-2 pointer-events-auto">
+      <div
+        v-if="buildingFloorsDesc.length > 1"
+        class="bg-white/95 backdrop-blur-md border border-slate-200/90 rounded-xl shadow-md overflow-hidden flex flex-col divide-y divide-slate-100"
+        title="Pilih Lantai (Google Indoor Style)"
+      >
+        <button
+          v-for="fl in buildingFloorsDesc"
+          :key="fl.id"
+          type="button"
+          @click="store.selectFloor(fl.id)"
+          :title="fl.nama_lantai"
+          class="w-9 h-8 text-[11px] font-bold flex items-center justify-center transition-colors cursor-pointer"
+          :class="
+            fl.id === store.activeFloorId.value
+              ? 'bg-[#1a73e8] text-white'
+              : 'text-slate-700 hover:bg-slate-100'
+          "
+        >
+          L{{ fl.level_order || 1 }}
+        </button>
+      </div>
+
+      <button
+        type="button"
+        @click="fitToViewport"
+        title="Pusatkan Peta ke Layar"
+        class="w-9 h-9 bg-white/95 backdrop-blur-md border border-slate-200/90 rounded-xl shadow-md flex items-center justify-center text-slate-700 hover:text-[#1a73e8] hover:bg-slate-50 cursor-pointer transition-colors"
+      >
+        <LocateFixed class="w-4 h-4" />
+      </button>
+
+      <div class="bg-white/95 backdrop-blur-md border border-slate-200/90 rounded-xl shadow-md overflow-hidden flex flex-col divide-y divide-slate-100">
+        <button
+          type="button"
+          @click="zoom = Math.min(2.6, Math.round((zoom + 0.15) * 100) / 100)"
+          title="Perbesar (+)"
+          class="w-9 h-8 flex items-center justify-center text-slate-700 hover:bg-slate-100 cursor-pointer"
+        >
+          <Plus class="w-4 h-4" />
+        </button>
+        <div class="w-9 py-0.5 text-[9px] font-mono font-semibold text-center text-slate-500 bg-slate-50/70">
+          {{ Math.round(zoom * 100) }}%
         </div>
-        <div class="w-px h-3.5 bg-slate-200 hidden xl:block" />
         <button
           type="button"
-          @click="store.showCorridorGraph.value = !store.showCorridorGraph.value"
-          class="px-2 py-0.5 rounded-full font-medium flex items-center gap-1 cursor-pointer"
-          :class="store.showCorridorGraph.value ? 'bg-teal-50 text-teal-700' : 'text-slate-500 hover:bg-slate-100'"
+          @click="zoom = Math.max(0.4, Math.round((zoom - 0.15) * 100) / 100)"
+          title="Perkecil (−)"
+          class="w-9 h-8 flex items-center justify-center text-slate-700 hover:bg-slate-100 cursor-pointer"
         >
-          <GitBranch class="w-3.5 h-3.5" /> <span>Rute</span>
+          <Minus class="w-4 h-4" />
         </button>
-        <button
-          v-if="floor?.image_url"
-          type="button"
-          @click="store.showBlueprint.value = !store.showBlueprint.value"
-          class="px-2 py-0.5 rounded-full font-medium flex items-center gap-1 cursor-pointer"
-          :class="store.showBlueprint.value ? 'bg-sky-50 text-sky-700' : 'text-slate-500 hover:bg-slate-100'"
-        >
-          <ImageIcon class="w-3.5 h-3.5" />
-          <Eye v-if="store.showBlueprint.value" class="w-3 h-3" />
-          <EyeOff v-else class="w-3 h-3" />
-        </button>
-        <div class="w-px h-3.5 bg-slate-200" />
-        <button type="button" @click="zoom = Math.max(0.4, Math.round((zoom - 0.15) * 100) / 100)" class="p-1 rounded-full hover:bg-slate-100 cursor-pointer"><ZoomOut class="w-3.5 h-3.5" /></button>
-        <span class="font-mono font-semibold text-slate-700 w-10 text-center">{{ Math.round(zoom * 100) }}%</span>
-        <button type="button" @click="zoom = Math.min(2.6, Math.round((zoom + 0.15) * 100) / 100)" class="p-1 rounded-full hover:bg-slate-100 cursor-pointer"><ZoomIn class="w-3.5 h-3.5" /></button>
-        <button type="button" @click="fitToViewport" class="p-1 rounded-full hover:bg-slate-100 cursor-pointer" title="Fit to Screen"><Maximize2 class="w-3.5 h-3.5" /></button>
       </div>
     </div>
+
+    <!-- Bottom-Left Google Maps Layers & Route-Mode Switcher Widget -->
+    <MapLayersWidget
+      :active-route-type="store.activeRouteDrawType.value"
+      :routing-profile="store.routingProfile.value"
+      :show-grid="showCanvasGrid"
+      :show-graph="store.showCorridorGraph.value"
+      :show-blueprint="store.showBlueprint.value"
+      :has-blueprint="Boolean(floor?.image_url)"
+      :read-only="readOnly"
+      @select-route-type="handleLayerModeSelect"
+      @toggle-grid="showCanvasGrid = !showCanvasGrid"
+      @toggle-graph="store.showCorridorGraph.value = !store.showCorridorGraph.value"
+      @toggle-blueprint="store.showBlueprint.value = !store.showBlueprint.value"
+    />
   </div>
 </template>

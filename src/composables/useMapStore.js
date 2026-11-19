@@ -38,6 +38,7 @@ export function useMapStore() {
   const gridSize = ref(20)
   const showCorridorGraph = ref(true)
   const showBlueprint = ref(true)
+  const showMapSettingsModal = ref(false)
 
   const rightInspectorTab = ref('design') // 'design' | 'audit'
 
@@ -262,8 +263,8 @@ export function useMapStore() {
     if (dx === 0 && dy === 0) return
 
     for (const d of room.doors || []) {
-      d.x = snap(d.x + dx)
-      d.y = snap(d.y + dy)
+      d.x = Math.round(d.x + dx)
+      d.y = Math.round(d.y + dy)
     }
 
     const pad = 14
@@ -272,8 +273,8 @@ export function useMapStore() {
       const wasInsideOld =
         n.x >= oldX - pad && n.x <= oldX + room.w + pad && n.y >= oldY - pad && n.y <= oldY + room.h + pad
       if (wasInsideOld && (n.kind === 'room' || n.kind === 'door' || n.roomId === refId || n.roomId === room.id)) {
-        n.x = snap(n.x + dx)
-        n.y = snap(n.y + dy)
+        n.x = Math.round(n.x + dx)
+        n.y = Math.round(n.y + dy)
       }
     }
   }
@@ -408,6 +409,44 @@ export function useMapStore() {
     return node
   }
 
+  function finishRouteDraft() {
+    edgeDraftFromNodeId.value = null
+  }
+
+  /**
+   * Gambar jalur rute berantai ala Google Maps (snap ke node terdekat bila ada)
+   */
+  function drawRoutePointAt(x, y, explicitNodeId = null) {
+    const f = activeFloor.value
+    if (!f) return null
+
+    let targetNode = explicitNodeId ? f.nav_nodes.find((n) => n.id === explicitNodeId) : null
+    if (!targetNode) {
+      let bestDist = 18
+      for (const n of f.nav_nodes) {
+        const d = Math.hypot(n.x - x, n.y - y)
+        if (d <= bestDist) {
+          bestDist = d
+          targetNode = n
+        }
+      }
+    }
+
+    if (!targetNode) {
+      targetNode = addNavNodeAt(x, y, 'corridor')
+    }
+    if (!targetNode) return null
+
+    const prevId = edgeDraftFromNodeId.value
+    if (prevId && prevId !== targetNode.id) {
+      connectNodes(prevId, targetNode.id)
+    }
+
+    edgeDraftFromNodeId.value = targetNode.id
+    selection.value = { type: 'node', id: targetNode.id }
+    return targetNode
+  }
+
   function connectNodes(fromId, toId) {
     const f = activeFloor.value
     if (!f || !fromId || !toId || fromId === toId) return
@@ -505,6 +544,7 @@ export function useMapStore() {
     gridSize,
     showCorridorGraph,
     showBlueprint,
+    showMapSettingsModal,
     rightInspectorTab,
     selection,
     selectedEntity,
@@ -527,6 +567,8 @@ export function useMapStore() {
     bindStorageToMaster,
     addDoorAt,
     addNavNodeAt,
+    drawRoutePointAt,
+    finishRouteDraft,
     connectNodes,
     deleteSelected,
     updateBlueprint,

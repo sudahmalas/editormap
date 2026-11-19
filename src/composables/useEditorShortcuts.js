@@ -12,6 +12,18 @@ export function useEditorShortcuts(store, toolShortcuts) {
       spacePanning.value = true
       return
     }
+    if (e.key === 'Escape') {
+      if (store.edgeDraftFromNodeId.value) {
+        store.finishRouteDraft()
+      } else {
+        store.activeTool.value = 'select'
+      }
+      return
+    }
+    if (e.key === 'Enter' && store.edgeDraftFromNodeId.value) {
+      store.finishRouteDraft()
+      return
+    }
     if (e.key === 'Delete' || e.key === 'Backspace') {
       store.deleteSelected()
       return

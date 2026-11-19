@@ -38,7 +38,7 @@ export const ROUTE_TYPES = {
     id: 'umum',
     label: 'Rute Umum',
     desc: 'Jalur distribusi barang/logistik umum & staf reguler',
-    color: '#0284c7'
+    color: '#1a73e8'
   },
   steril: {
     id: 'steril',

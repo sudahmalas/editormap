@@ -2,6 +2,7 @@
 import { onUnmounted, ref } from 'vue'
 import AppHeaderBar from './components/common/AppHeaderBar.vue'
 import RackSlotModal from './components/RackSlotModal.vue'
+import MapSettingsModal from './components/editor/MapSettingsModal.vue'
 import { useMapStore } from './composables/useMapStore'
 import EditorWorkspace from './views/EditorWorkspace.vue'
 import ItemFinderView from './views/ItemFinderView.vue'
@@ -33,6 +34,7 @@ onUnmounted(() => {
     <PorterModeView v-else :store="store" />
 
     <RackSlotModal :store="store" />
+    <MapSettingsModal :store="store" />
 
     <div
       v-if="toast"

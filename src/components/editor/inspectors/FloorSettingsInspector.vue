@@ -1,5 +1,5 @@
 <script setup>
-import { ImagePlus, Plus, Ruler } from 'lucide-vue-next'
+import { ImagePlus, Plus } from 'lucide-vue-next'
 import { ref } from 'vue'
 
 const props = defineProps({
@@ -101,17 +101,6 @@ const submitAddFloor = () => {
           <span>{{ Math.round((floor.image_opacity ?? 0.35) * 100) }}%</span>
         </div>
         <input v-model.number="floor.image_opacity" type="range" min="0.1" max="0.9" step="0.05" class="w-full" />
-      </div>
-    </div>
-
-    <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80 space-y-1.5">
-      <div class="text-[11px] font-bold text-slate-700 flex items-center gap-1.5">
-        <Ruler class="w-3.5 h-3.5 text-teal-600" />
-        Kalibrasi Skala
-      </div>
-      <div class="flex items-center gap-2">
-        <input v-model.number="floor.pixelsPerMeter" type="number" min="5" max="100" class="w-16 text-xs border border-slate-200 rounded-lg px-2 py-1 bg-white font-mono" />
-        <span class="text-[11px] text-slate-600">px = 1 meter</span>
       </div>
     </div>
   </div>

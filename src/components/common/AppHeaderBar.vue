@@ -8,14 +8,13 @@ import {
   Map,
   PackageSearch,
   Redo2,
-  RotateCcw,
   ShieldCheck,
   Truck,
-  Undo2,
-  Upload
+  Undo2
 } from 'lucide-vue-next'
 import { computed, ref } from 'vue'
 import { exportToWorklistPayload, importFromWorklistPayload } from '../../adapters/worklistSchema'
+import HeaderMenuDropdown from './HeaderMenuDropdown.vue'
 import SearchableCombobox from './SearchableCombobox.vue'
 
 const props = defineProps({
@@ -31,7 +30,7 @@ const buildingOptions = computed(() =>
     label: b.nama,
     sublabel: `${b.kode} · ${b.floors?.length || 0} lantai`,
     badge: b.kode,
-    badgeClass: 'bg-slate-800 text-slate-300 border-slate-700'
+    badgeClass: 'bg-slate-100 text-slate-600 border-slate-200'
   }))
 )
 
@@ -43,8 +42,8 @@ const floorOptions = computed(() =>
     badge: f.status === 'published' ? 'Published' : 'Draft',
     badgeClass:
       f.status === 'published'
-        ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
-        : 'bg-amber-500/15 text-amber-300 border-amber-500/30'
+        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+        : 'bg-amber-50 text-amber-700 border-amber-200'
   }))
 )
 
@@ -91,43 +90,57 @@ const handleValidate = () => {
 </script>
 
 <template>
-  <header class="h-12 bg-[#1e222a] text-slate-200 border-b border-slate-800 px-3 flex items-center justify-between gap-3 shrink-0 z-30">
+  <header class="h-14 bg-white/95 backdrop-blur-md text-slate-800 border-b border-slate-200/90 px-3.5 flex items-center justify-between gap-3 shrink-0 z-30 shadow-2xs">
+    <!-- LEFT: Menu + Brand + Breadcrumb Bangunan / Lantai -->
     <div class="flex items-center gap-2.5 min-w-0">
-      <div class="flex items-center gap-2 shrink-0">
-        <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-teal-400 to-sky-500 text-slate-950 flex items-center justify-center shadow-xs">
-          <Map class="w-4 h-4 stroke-[2.25]" />
+      <HeaderMenuDropdown
+        :store="store"
+        @import-file="importInputRef?.click()"
+        @export-file="handleExport"
+        @validate-map="handleValidate"
+        @reset-demo="store.resetDemoData()"
+      />
+
+      <div class="flex items-center gap-2 shrink-0 pr-1">
+        <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-[#1a73e8] to-teal-500 text-white flex items-center justify-center shadow-xs">
+          <Map class="w-4 h-4 stroke-[2.2]" />
         </div>
-        <span class="text-xs font-bold tracking-tight text-white hidden sm:inline">EditorMap</span>
+        <div class="hidden md:block leading-tight">
+          <div class="text-xs font-extrabold tracking-tight text-slate-900">EditorMap</div>
+          <div class="text-[10px] text-slate-400 truncate max-w-[120px]">{{ store.campus.outlet?.nama || 'Indoor Maps' }}</div>
+        </div>
       </div>
 
-      <span class="text-slate-600 hidden md:inline">/</span>
+      <div class="h-6 w-px bg-slate-200 hidden lg:block shrink-0" />
 
       <div class="flex items-center gap-1.5 min-w-0">
-        <div class="w-48">
+        <div class="w-36 lg:w-48">
           <SearchableCombobox
             :model-value="store.activeBuildingId.value"
             :options="buildingOptions"
-            theme="dark"
+            compact
             placeholder="Pilih Bangunan"
             search-placeholder="Cari bangunan..."
             popover-width-class="w-72"
             @update:model-value="store.selectBuilding(Number($event))"
           >
-            <template #icon><Building2 class="w-3.5 h-3.5 text-slate-400 shrink-0" /></template>
+            <template #icon><Building2 class="w-3.5 h-3.5 text-[#1a73e8] shrink-0" /></template>
           </SearchableCombobox>
         </div>
 
-        <div v-if="store.activeBuilding.value" class="w-52">
+        <span class="text-slate-300 hidden sm:inline font-light">/</span>
+
+        <div v-if="store.activeBuilding.value" class="w-40 lg:w-52">
           <SearchableCombobox
             :model-value="store.activeFloorId.value"
             :options="floorOptions"
-            theme="dark"
+            compact
             placeholder="Pilih Lantai"
             search-placeholder="Cari lantai..."
             popover-width-class="w-80"
             @update:model-value="store.selectFloor(Number($event))"
           >
-            <template #icon><Layers class="w-3.5 h-3.5 text-slate-400 shrink-0" /></template>
+            <template #icon><Layers class="w-3.5 h-3.5 text-teal-600 shrink-0" /></template>
           </SearchableCombobox>
         </div>
 
@@ -135,11 +148,12 @@ const handleValidate = () => {
           v-if="store.activeFloor.value && store.appMode.value === 'editor'"
           type="button"
           @click="store.toggleFloorPublishStatus(store.activeFloor.value.id)"
-          class="px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider border flex items-center gap-1 cursor-pointer shrink-0"
+          title="Klik untuk ubah status Published / Draft"
+          class="hidden xl:flex px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border items-center gap-1 cursor-pointer shrink-0 transition-colors"
           :class="
             store.activeFloor.value.status === 'published'
-              ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/25'
-              : 'bg-amber-500/15 text-amber-300 border-amber-500/30 hover:bg-amber-500/25'
+              ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
+              : 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100'
           "
         >
           <CheckCircle2 v-if="store.activeFloor.value.status === 'published'" class="w-3 h-3" />
@@ -149,56 +163,92 @@ const handleValidate = () => {
       </div>
     </div>
 
-    <nav class="flex items-center bg-slate-900/90 p-0.5 rounded-lg border border-slate-700/80 shrink-0">
+    <!-- CENTER: Google Maps / Figma Segmented View Switcher -->
+    <nav class="flex items-center bg-slate-100/90 p-1 rounded-full border border-slate-200/80 shrink-0">
       <button
         type="button"
         @click="store.appMode.value = 'editor'"
-        class="px-3 py-1 rounded-md text-[11px] font-semibold flex items-center gap-1.5 transition-all cursor-pointer"
-        :class="store.appMode.value === 'editor' ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-400 hover:text-white'"
+        class="px-3 py-1 rounded-full text-[11px] font-semibold flex items-center gap-1.5 transition-all cursor-pointer"
+        :class="
+          store.appMode.value === 'editor'
+            ? 'bg-white text-[#1a73e8] shadow-xs ring-1 ring-slate-200/80'
+            : 'text-slate-600 hover:text-slate-900'
+        "
       >
-        <Map class="w-3.5 h-3.5" /> <span>Studio Editor</span>
+        <Map class="w-3.5 h-3.5" /> <span class="hidden sm:inline">Studio Editor</span>
       </button>
       <button
         type="button"
         @click="store.appMode.value = 'finder'"
-        class="px-3 py-1 rounded-md text-[11px] font-semibold flex items-center gap-1.5 transition-all cursor-pointer"
-        :class="store.appMode.value === 'finder' ? 'bg-sky-600 text-white shadow-xs' : 'text-slate-400 hover:text-white'"
+        class="px-3 py-1 rounded-full text-[11px] font-semibold flex items-center gap-1.5 transition-all cursor-pointer"
+        :class="
+          store.appMode.value === 'finder'
+            ? 'bg-white text-sky-700 shadow-xs ring-1 ring-slate-200/80'
+            : 'text-slate-600 hover:text-slate-900'
+        "
       >
-        <PackageSearch class="w-3.5 h-3.5" /> <span>Cari Barang</span>
+        <PackageSearch class="w-3.5 h-3.5" /> <span class="hidden sm:inline">Cari Barang</span>
       </button>
       <button
         type="button"
         @click="store.appMode.value = 'porter'"
-        class="px-3 py-1 rounded-md text-[11px] font-semibold flex items-center gap-1.5 transition-all cursor-pointer"
-        :class="store.appMode.value === 'porter' ? 'bg-emerald-600 text-white shadow-xs' : 'text-slate-400 hover:text-white'"
+        class="px-3 py-1 rounded-full text-[11px] font-semibold flex items-center gap-1.5 transition-all cursor-pointer"
+        :class="
+          store.appMode.value === 'porter'
+            ? 'bg-white text-emerald-700 shadow-xs ring-1 ring-slate-200/80'
+            : 'text-slate-600 hover:text-slate-900'
+        "
       >
-        <Truck class="w-3.5 h-3.5" /> <span>Portal Porter</span>
+        <Truck class="w-3.5 h-3.5" /> <span class="hidden sm:inline">Portal Porter</span>
       </button>
     </nav>
 
-    <div class="flex items-center gap-1.5 shrink-0">
-      <template v-if="store.appMode.value === 'editor'">
-        <button type="button" :disabled="store.historyStack.value.length === 0" @click="store.undo()" title="Undo (Ctrl+Z)" class="p-1.5 rounded-md bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700 disabled:opacity-35 cursor-pointer">
+    <!-- RIGHT: History + Audit + Primary Export CTA -->
+    <div class="flex items-center gap-2 shrink-0">
+      <div
+        v-if="store.appMode.value === 'editor'"
+        class="hidden md:flex items-center bg-slate-50 border border-slate-200/90 rounded-xl p-0.5"
+      >
+        <button
+          type="button"
+          :disabled="store.historyStack.value.length === 0"
+          @click="store.undo()"
+          title="Undo (Ctrl+Z)"
+          class="p-1.5 rounded-lg text-slate-600 hover:bg-white hover:text-slate-900 disabled:opacity-35 cursor-pointer"
+        >
           <Undo2 class="w-3.5 h-3.5" />
         </button>
-        <button type="button" :disabled="store.redoStack.value.length === 0" @click="store.redo()" title="Redo (Ctrl+Shift+Z)" class="p-1.5 rounded-md bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700 disabled:opacity-35 cursor-pointer">
+        <button
+          type="button"
+          :disabled="store.redoStack.value.length === 0"
+          @click="store.redo()"
+          title="Redo (Ctrl+Shift+Z)"
+          class="p-1.5 rounded-lg text-slate-600 hover:bg-white hover:text-slate-900 disabled:opacity-35 cursor-pointer"
+        >
           <Redo2 class="w-3.5 h-3.5" />
         </button>
-        <button type="button" @click="handleValidate" class="px-2.5 py-1 rounded-md bg-slate-800 border border-slate-700 text-[11px] font-semibold text-slate-200 hover:bg-slate-700 flex items-center gap-1.5 cursor-pointer">
-          <ShieldCheck class="w-3.5 h-3.5 text-teal-400" />
-          <span class="hidden xl:inline">Audit Peta</span>
-        </button>
-      </template>
+      </div>
+
+      <button
+        v-if="store.appMode.value === 'editor'"
+        type="button"
+        @click="handleValidate"
+        title="Audit Koneksi & Rute"
+        class="px-2.5 py-1.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200/90 text-[11px] font-semibold text-slate-700 flex items-center gap-1.5 cursor-pointer transition-colors"
+      >
+        <ShieldCheck class="w-3.5 h-3.5 text-teal-600" />
+        <span class="hidden xl:inline">Audit</span>
+      </button>
 
       <input ref="importInputRef" type="file" accept="application/json" class="hidden" @change="handleImportFile" />
-      <button type="button" @click="importInputRef?.click()" title="Import JSON Worklist" class="p-1.5 rounded-md bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700 cursor-pointer">
-        <Upload class="w-3.5 h-3.5" />
-      </button>
-      <button type="button" @click="handleExport" title="Export Schema JSON Worklist" class="px-2.5 py-1 rounded-md bg-teal-600 hover:bg-teal-500 text-white text-[11px] font-semibold flex items-center gap-1.5 cursor-pointer">
+
+      <button
+        type="button"
+        @click="handleExport"
+        title="Export Schema JSON Worklist"
+        class="px-3.5 py-1.5 rounded-xl bg-[#1a73e8] hover:bg-blue-700 text-white text-[11px] font-semibold flex items-center gap-1.5 shadow-xs cursor-pointer transition-colors"
+      >
         <Download class="w-3.5 h-3.5" /> <span class="hidden lg:inline">Export</span>
-      </button>
-      <button type="button" @click="store.resetDemoData()" title="Reset Data Demo" class="p-1.5 rounded-md bg-slate-800 border border-slate-700 text-slate-400 hover:text-rose-400 cursor-pointer">
-        <RotateCcw class="w-3.5 h-3.5" />
       </button>
     </div>
   </header>

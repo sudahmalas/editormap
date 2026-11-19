@@ -15,6 +15,7 @@ const props = defineProps({
 const emit = defineEmits([
   'entity-mousedown',
   'drag-start',
+  'drag-move',
   'drag-end',
   'transform-end',
   'open-rack-modal'
@@ -59,6 +60,7 @@ const getRackItemsCount = (rack) => (rack.slots || []).reduce((acc, s) => acc + 
       }"
       @mousedown="emit('entity-mousedown', $event, 'room', room)"
       @dragstart="emit('drag-start')"
+      @dragmove="emit('drag-move', $event, 'room', room)"
       @dragend="emit('drag-end', $event, 'room', room)"
       @transformend="emit('transform-end', $event, 'room', room)"
     >
@@ -161,6 +163,7 @@ const getRackItemsCount = (rack) => (rack.slots || []).reduce((acc, s) => acc + 
       @mousedown="emit('entity-mousedown', $event, 'rack', rk)"
       @dblclick="emit('open-rack-modal', rk.id)"
       @dragstart="emit('drag-start')"
+      @dragmove="emit('drag-move', $event, 'rack', rk)"
       @dragend="emit('drag-end', $event, 'rack', rk)"
       @transformend="emit('transform-end', $event, 'rack', rk)"
     >
